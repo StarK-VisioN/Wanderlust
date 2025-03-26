@@ -1,0 +1,186 @@
+/*
+
+we are going to make airbnb type website 
+
+Getting started :- 
+        1. Databse Set Up
+
+        2. Rest API's for CRUD
+
+
+
+Setting up :- 
+        installing all the required packages.   init 
+                                                express
+                                                mongoosh
+                                                ejs
+                                                nodemon
+                                                npm i method-override           -> use to convert GET, POST -> PUT, DELETE and other methods.
+
+
+        Basic setup :- 
+                const express = require("express");
+                const app = express();
+                const mongoose = require('mongoose');
+                const port = 5500;
+
+                main().then((res) => {
+                    console.log(res, "conencted to DB");
+                }).catch((err) => {
+                    console.log(err);
+                });
+
+                async function main() {
+                await mongoose.connect("mongodb://127.0.0.1:27017/wanderlust");
+                }
+
+                app.get("/", (req, res) => {
+                    res.send("Hi, I am root");
+                });
+
+                app.listen(port, () => {
+                    console.log(`listening to port ${port}`);
+                });
+
+
+Model: Listing
+
+        Listing means there will be varieties of palces ... apartments, flats, house, villas, hotels etc
+
+        And all these Models will have their information. ->    title
+                                                                description
+                                                                image
+                                                                price
+                                                                location
+                                                                country
+
+        So will create file which will contain all types of Schemas of the Database     ->
+                
+            listing.js :- 
+                    Defined the Schema & Model of the collection.
+                    Export it to app.js 
+                                module.exports = Listing;                                       listing.js
+                                const Listing = require("../models/listing.js");                app.js
+
+                                
+
+Initialising Data :- 
+        Creating new folder    
+                init
+
+        index.js        
+                which links with the database, and helps to 1st delete all the data and insert the new data ..present in data.js
+
+        To check is data inserted or not    ->
+                1. Go to mongosh terminal
+                2. show dbs
+                3. use wanderlust
+                4. show collections
+                5. db.listings.find()
+
+NOTE :- by simply running this index.js   will able to delete all the privious data present in Collection & can add on new Data present in data.js
+
+        
+
+Index Route :- 
+        Helps to return all the titles of Lists. form the document.
+
+        GET /listings       -> return all lists data                                    app.js
+
+
+
+Show Route :- 
+        Helps to print individual Listing data completely.
+        
+        GET /listings/:id       -> to print all the data for a particular listing               app.js
+
+
+
+Create: New & Create Route :- 
+        New route -> 
+                GET /listings/new       -> which will be a form to add new lists
+                                        After submit redirects to Create route.
+
+        Create route ->
+                POST /listings          -> to create new lists.
+
+
+        Implementation ->
+                will make a new Btn inside index.ejs   which will send a GET req. to action = /listings/new
+                                <form method="GET" action="/listings/new">
+                                        <button>Create New Listing</button>
+                                </form>
+
+                Making new route in app.js ->
+                                app.get("/listings/new", (req, res) => {
+                                        res.render("./listings/new.ejs")
+                                });
+
+                Making new file which use as a form        new.ejs ->
+                                <form  method="POST" action="/listings">                        ... form will be of POST req.
+
+                Creating new route ->
+NOTE :- see will pass all our new data in the form of objects ..so need to modify new.ejs   will pass like ->      listing[  ]
+
+
+
+
+Update: Edit & Update route
+        Edit route ->
+                GET /listings/:id/edit          ->  which will be a form to edit lists
+                                        After submit redirects to Update route.
+
+                PUT /listings/:id               -> updates the data in DB
+
+
+        Implementation ->
+                will make a new Btn inside show.ejs   which will send a GET req. to action = /listings/new
+                                <a href="/listings/<%= listing._id %>/edit">Edit this listing</a>
+
+                Making Edit route in app.js ->
+                                app.get("/listings/:id/edit", async(req, res) => {
+                                        let {id} = req. params;
+                                        const listing = await Listing.findById(id);
+                                        res.render("./listings/edit.ejs", {listing});
+                                });
+
+                Making Update route in app.js -> 
+                                app.put("/listings/:id", async(req, res) => {
+                                        let {id} = req. params;
+                                        const listing = await Listing.findByIdAndUpdate(id, {...req.body.listing});     // {...req.body.listings}  -> we are going to deconstruct the values of object to get individual key-values & add them individually in DB
+                                        res.redirect(`/listings/${id}`);          // to our show route   "/listings/:id"
+                                });     
+                                
+                                
+
+
+Delete: Delete route 
+        DELETE /listings/:id 
+
+
+        Implementation -> 
+                 will make a new Btn DELETE inside show.ejs   which will send a GET req. to action = /listings/:id
+
+                 Making Delete route in app.js ->
+                                app.delete("/listings/:id", async(req, res) => {                    // making changes in DB so need to use async function
+                                        let {id} = req.params;
+                                        const deletedListings = await Listing.findByIdAndDelete(id);
+                                        console.log("deleted listing : ",deletedListings);
+                                        res.redirect("/listings");
+                                });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+*/
