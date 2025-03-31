@@ -1,0 +1,349 @@
+/*
+
+we are going to make airbnb type website 
+
+Getting started :- 
+        1. Databse Set Up
+
+        2. Rest API's for CRUD
+
+
+
+Setting up :- 
+        installing all the required packages.   init 
+                                                express
+                                                mongoosh
+                                                ejs
+                                                nodemon
+                                                npm i method-override           -> use to convert GET, POST -> PUT, DELETE, UPDATE and other methods.
+
+
+        Basic setup :- 
+                const express = require("express");
+                const app = express();
+                const mongoose = require('mongoose');
+                const port = 5500;
+
+                main().then((res) => {
+                    console.log(res, "conencted to DB");
+                }).catch((err) => {
+                    console.log(err);
+                });
+
+                async function main() {
+                await mongoose.connect("mongodb://127.0.0.1:27017/wanderlust");
+                }
+
+                app.get("/", (req, res) => {
+                    res.send("Hi, I am root");
+                });
+
+                app.listen(port, () => {
+                    console.log(`listening to port ${port}`);
+                });
+
+
+Model: Listing
+
+        Listing means there will be varieties of palces ... apartments, flats, house, villas, hotels etc
+
+        And all these Models will have their information. ->    title
+                                                                description
+                                                                image
+                                                                price
+                                                                location
+                                                                country
+
+        So will create file which will contain all types of Schemas of the Database     ->
+                
+            listing.js :- 
+                    Defined the Schema & Model of the collection.
+                    Export it to app.js 
+                                module.exports = Listing;                                       listing.js
+                                const Listing = require("../models/listing.js");                app.js
+
+                                
+
+Initialising Data :- 
+        Creating new folder    
+                init
+
+        index.js        
+                which links with the database, and helps to 1st delete all the data and insert the new data ..present in data.js
+
+        To check is data inserted or not    ->
+                1. Go to mongosh terminal
+                2. show dbs
+                3. use wanderlust
+                4. show collections
+                5. db.listings.find()
+
+NOTE :- by simply running this index.js   will able to delete all the privious data present in Collection & can add on new Data present in data.js
+
+        
+
+Index Route :- 
+        Helps to return all the titles of Lists. form the document.
+
+        GET /listings       -> return all lists data                                    app.js
+
+
+
+Show Route :- 
+        Helps to print individual Listing data completely.
+        
+        GET /listings/:id       -> to print all the data for a particular listing               app.js
+
+
+
+Create: New & Create Route :- 
+        New route -> 
+                GET /listings/new       -> which will be a form to add new lists
+                                        After submit redirects to Create route.
+
+        Create route ->
+                POST /listings          -> to create new lists.
+
+
+        Implementation ->
+                will make a new Btn inside index.ejs   which will send a GET req. to action = /listings/new
+                                <form method="GET" action="/listings/new">
+                                        <button>Create New Listing</button>
+                                </form>
+
+                Making new route in app.js ->
+                                app.get("/listings/new", (req, res) => {
+                                        res.render("./listings/new.ejs")
+                                });
+
+                Making new file which use as a form        new.ejs ->
+                                <form  method="POST" action="/listings">                        ... form will be of POST req.
+
+                Creating new route ->
+NOTE :- see will pass all our new data in the form of objects ..so need to modify new.ejs   will pass like ->      listing[  ]
+
+
+
+
+Update: Edit & Update route
+        Edit route ->
+                GET /listings/:id/edit          ->  which will be a form to edit lists
+                                        After submit redirects to Update route.
+
+                PUT /listings/:id               -> updates the data in DB
+
+
+        Implementation ->
+                will make a new Btn inside show.ejs   which will send a GET req. to action = /listings/new
+                                <a href="/listings/<%= listing._id %>/edit">Edit this listing</a>
+
+                Making Edit route in app.js ->
+                                app.get("/listings/:id/edit", async(req, res) => {
+                                        let {id} = req. params;
+                                        const listing = await Listing.findById(id);
+                                        res.render("./listings/edit.ejs", {listing});
+                                });
+
+                Making Update route in app.js -> 
+                                app.put("/listings/:id", async(req, res) => {
+                                        let {id} = req. params;
+                                        const listing = await Listing.findByIdAndUpdate(id, {...req.body.listing});     // {...req.body.listings}  -> we are going to deconstruct the values of object to get individual key-values & add them individually in DB
+                                        res.redirect(`/listings/${id}`);          // to our show route   "/listings/:id"
+                                });     
+                                
+                                
+
+
+Delete: Delete route 
+        DELETE /listings/:id 
+
+
+        Implementation -> 
+                 will make a new Btn DELETE inside show.ejs   which will send a GET req. to action = /listings/:id
+
+                 Making Delete route in app.js ->
+                                app.delete("/listings/:id", async(req, res) => {                    // making changes in DB so need to use async function
+                                        let {id} = req.params;
+                                        const deletedListings = await Listing.findByIdAndDelete(id);
+                                        console.log("deleted listing : ",deletedListings);
+                                        res.redirect("/listings");
+                                });
+
+
+
+
+Starting with Styling ->
+
+1. What is EJS Mate?
+        All the comman things that exists on all pages like navbar, footer etc
+
+        Its an NPM package              npm i ejs-mate
+        
+        Require it on app.js            const ejsmate = require("ejs-mate");
+                                        app.engine("ejs", ejsMate);
+
+        Making new folder & file inside views          layouts -> boilerplate.ejs 
+                        <!DOCTYPE html>
+                        <html lang="en">
+                        <head>
+                                <meta charset="UTF-8">
+                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                <title>WanderLust</title>
+                        </head>
+                        <body>
+                                <h1>WanderLust</h1>
+                                <div class="container">
+                                        <%- body %>                             ..this will help to link body
+                                </div>
+                        </body>
+                        </html>
+
+
+                index.ejs ->
+                        <% layout("./layouts/boilerplate.ejs") %>               ..this is use to link with boilerplate.ejs file
+                        <body>
+                        <h1>All Listings</h1>
+                        <form method="GET" action="/listings/new">
+                                <button>Create New Listing</button>
+                        </form>
+                        <ul>
+                                <% for(let listing of allListings) { %>
+                                <li> <a href="/listings/<%=listing._id %>"> <%= listing.title %> </a> </li>
+                                <% } %>
+                        </ul>
+                        </body>
+
+
+        & inside Boliderplate.ejs we further added footer.ejs, navbar.ejs       ->
+                        <body>
+                                <%- include("../includes/navbar.ejs") %>
+                                <div class="container">
+                                        <%- body %>
+                                </div>
+                                <%- include("../includes/footer.ejs") %>
+                        </body>
+
+                
+        Further we then added Bootstrap-CDN links & google-fonts icons in       boilerplate.ejs
+
+        Then we link this final boilerplate.ejs to all other EJS pages...edit.ejs, index.ejs, new.ejs, show.ejs
+
+        Futher on we updated the look of all the pages of edit.ejs, index.ejs, new.ejs, show.ejs  by using bootstrap classes.
+
+
+
+Middlewares :- 
+        Backend most IMP topic.
+        It is an intermediary.
+        They are functions in Express.
+
+        Request             ->              Middleware              ->              Response
+
+        In express,
+                Middleware in Express "are functions" that come into play  ->  " after the server receives the request "   and 
+                " before the response is sent to the client. "
+
+        Common middelware funations :-
+                1. methodOverride       -> to excpet & override the methods like PUT, DELETE, UPDTAE
+                2. bodyParser           -> to convert the data present in body ..like req.body, res.parse for ID
+                3. express.static       -> to get access & set path for public folders...used to add styling or image, JS
+                4. express.urlencoded   -> to access URL data. 
+
+                e.g. :- 
+                        app.use(express.static(path.join(__dirname, "/public")));
+                        app.use(express.urlencoded({extended: true}));
+
+                Here, whenever the req comes, we pass it on to middleware(i.e. static, urlencoded) & he perform some task.
+
+        Properties that middlewares have :- 
+                1. req, res objects can be accessed by middlewares.
+                        e.g.:- middlewares can access   req.body, req.params
+                
+                2. Chaining can be possible
+                        e.g.:- 1 middleware can pass control to another middleware...and so on
+
+                3. If middleware want to stop sending response ...he may do it. 
+                        e.g.:- They may stop the Channing in between.
+
+        What do middlewares do?
+                Middleware functions can perform the following taks :
+                1. Execute any code
+                2. Mkae changes to the req and the res objects.
+                3. End the req-res cycle
+                4. Call the next middleware funciton in the stack.      (Chaining)
+
+
+Our 1st middleware Using    ->    next()
+
+    // middleware
+        app.use((req, res, next) => {
+                console.log("Hi, im 1st middleware");
+                next();                                         -> this next() means Pass to the next middleware or route handler
+        });
+
+        app.use((req, res, next) => {
+                console.log("Hi, im 2nd middleware");
+                next();                                         -> this next() means Pass to the next middleware or route handler
+        });
+
+        app.get("/", (req, res) => {
+                res.send("Hi, I am root");
+        });
+
+        app.get("/random", (req, res) => {
+                res.send("this is a random page");
+        });
+
+        app.listen(port, () => {
+                console.log(`listening to port ${port}`);
+        });
+  
+        
+Even we can use middleware for error display too ->
+        app.use((req, res) => {
+                res.status(404).send("Page not found!");
+        });              
+
+
+API Token as Query string :- 
+        Is the user authenticated or not.
+
+        app.use("/api", (req, res) => {
+                let {token} = req.query;
+                if(token === "giveaccess") {
+                        next();
+                }
+                res.send("ACCESS DENIED");
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+*/

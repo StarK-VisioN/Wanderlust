@@ -4,11 +4,14 @@ const mongoose = require('mongoose');
 const port = 5500;
 const path = require("path");
 const methodOverride = require("method-override");
+const ejsMate = require("ejs-mate");
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(express.urlencoded({extended: true}));
 app.use(methodOverride("_method"));
+app.engine("ejs", ejsMate);
+app.use(express.static(path.join(__dirname, "/public")));
 
 
 const Listing = require("./models/listing.js");                                    // Schema and Models...Where models are used for Collection.
@@ -65,6 +68,7 @@ app.get("/listings/:id/edit", async(req, res) => {
     res.render("./listings/edit.ejs", {listing});
 });
 
+
 // Update route
 app.put("/listings/:id", async(req, res) => {
     let {id} = req.params;
@@ -79,6 +83,11 @@ app.delete("/listings/:id", async(req, res) => {                    // making ch
     console.log("deleted listing : ",deletedListings);
     res.redirect("/listings");
 });
+
+
+
+
+
 
 
 
