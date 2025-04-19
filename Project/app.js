@@ -50,7 +50,7 @@ async function main() {
 const store = MongoStore.create({
     mongoUrl: db_url,
     crypto: {
-        secret: process.enev.SECRET,
+        secret: process.env.SECRET,
     },
     touchAfter: 24 * 3600,          // storing session for 24 hrs -> i.e 3600
 });
